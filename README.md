@@ -12,9 +12,6 @@
 
 Lumoria is a Windower Community project that brings the tools for playing **Final Fantasy XI** with **Windower 4** on Linux into one place, making setup easier from start to finish.
 
-It is intended for modern Linux systems and newer hardware. If you are using an older device or need 32-bit support inside of a Flatpak, we recommend following the [Lutris guide](https://docs.windower.net/linux/#lutris) from the Windower documentation.
-
-
 ## How to install
 
 See [Getting Started](https://github.com/Windower/Lumoria/wiki/Getting-Started) in the wiki.
