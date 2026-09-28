@@ -174,7 +174,13 @@ namespace Lumoria.Runtime {
                     out vars, out rep
                 );
 
-                var job = make_post_install_job (loaded, entry, vars);
+                var redists = ResolvedRedistSet.resolve (
+                    loaded.spec.redists, Models.ManifestRepository.shared ().all_redists
+                );
+                foreach (var spec in redists.specs) vars["REDIST_%s".printf (spec.id)] = "1";
+                foreach (var step in redists.code_steps) vars["REDIST_%s".printf (step.command)] = "1";
+
+                var job = make_post_install_job (loaded, entry, vars, redists);
                 rep.total = 2 + job.phase.step_count;
                 job.phase.run_downloads (rep, "Downloading post install artifacts");
                 run_post_install (job, rep, runtime.paths, runtime.env, entry, logger);

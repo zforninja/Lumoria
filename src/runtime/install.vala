@@ -357,15 +357,23 @@ namespace Lumoria.Runtime {
         public InstallPhase phase;
     }
 
+    /*
+     * During a full install the script's redists are merged into the installer
+     * phase, so callers there pass no redist set. Reruns on an existing prefix
+     * pass the script's own resolved redists so they get installed too.
+     */
     PostInstallJob make_post_install_job (
         Models.LoadedPostInstall loaded,
         Models.PrefixEntry entry,
-        Gee.HashMap<string, string> vars
+        Gee.HashMap<string, string> vars,
+        ResolvedRedistSet? redists = null
     ) {
         var job = new PostInstallJob ();
         job.loaded = loaded;
         job.vars = vars;
-        job.phase = new InstallPhase (loaded.spec.downloads, loaded.spec.steps, new ResolvedRedistSet (), vars, entry);
+        job.phase = new InstallPhase (
+            loaded.spec.downloads, loaded.spec.steps, redists ?? new ResolvedRedistSet (), vars, entry
+        );
         return job;
     }
 
