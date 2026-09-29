@@ -89,6 +89,14 @@ namespace Lumoria.Runtime {
                 }
             }
 
+            Models.Entrypoint? boot_host;
+            string boot_ini;
+            if (resolve_boot_profile (ctx, entrypoint_id, out boot_host, out boot_ini)) {
+                apply_entrypoint (boot_host, ctx.vars, out exe, out args);
+                args = { boot_ini };
+                return;
+            }
+
             var ep = find_launch_entrypoint (ctx, entrypoint_id);
             if (ep != null) {
                 apply_entrypoint (ep, ctx.vars, out exe, out args);
@@ -182,6 +190,10 @@ namespace Lumoria.Runtime {
             ep = find_active_entrypoint (loaded.spec.entrypoints, scoped ? script_local : entrypoint_id, ctx.vars);
             if (ep != null) return ep;
         }
+
+        Models.Entrypoint? boot_host;
+        string boot_ini;
+        if (resolve_boot_profile (ctx, entrypoint_id, out boot_host, out boot_ini)) return boot_host;
         return null;
     }
 
@@ -226,12 +238,23 @@ namespace Lumoria.Runtime {
     public string launcher_dir_from_context (ManifestContext ctx) {
         if (ctx.launcher == null) return "";
         var ep = find_entrypoint (ctx.launcher.entrypoints, "");
-        if (ep == null || ep.exe == "") return "";
+        if (ep == null) return "";
+        return entrypoint_dir_from_context (ctx, ep);
+    }
+
+    /* Host directory containing the entrypoint's executable, or "" when unresolvable. */
+    internal string entrypoint_dir_from_context (ManifestContext ctx, Models.Entrypoint ep) {
+        if (ep.exe == "") return "";
         string exe;
         string[] args;
         apply_entrypoint (ep, ctx.vars, out exe, out args);
         if (exe.strip () == "") return "";
         return Path.get_dirname (resolve_host_path (exe, ctx.pfx_path));
+    }
+
+    /* The explicit default entrypoint of a manifest, falling back to its first one. */
+    internal Models.Entrypoint? default_entrypoint (Gee.ArrayList<Models.Entrypoint> eps) {
+        return find_entrypoint (eps, "");
     }
 
     internal Models.Entrypoint? find_local_entrypoint (
@@ -288,6 +311,20 @@ namespace Lumoria.Runtime {
         target.selector_label = _("Profile (%s)").printf (target.label);
         target.section = LaunchTargetSection.LAUNCHER_PROFILES;
         if (launcher.icon != "") target.icon = launcher.icon;
+        return target;
+    }
+
+    internal LaunchTarget launch_target_from_boot_profile (
+        string id,
+        string ini_name,
+        string icon
+    ) {
+        var target = new LaunchTarget ();
+        target.id = id;
+        target.label = boot_profile_display_label (ini_name);
+        target.selector_label = _("Boot profile (%s)").printf (target.label);
+        target.section = LaunchTargetSection.LAUNCHER_PROFILES;
+        if (icon != "") target.icon = icon;
         return target;
     }
 

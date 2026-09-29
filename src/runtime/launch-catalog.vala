@@ -57,6 +57,17 @@ namespace Lumoria.Runtime {
             profiles.add (launch_target_from_profile (ep.id, profile_name, ctx.launcher));
         }
 
+        foreach (var ep in list_boot_profile_entrypoints (ctx)) {
+            var target = launch_target_from_boot_profile (ep.id, ep.name, ep.icon);
+            string instance_id;
+            string local_id;
+            if (Models.PrefixAction.parse_script_id (ep.id, out instance_id, out local_id)) {
+                add_post_install (target, instance_id);
+            } else {
+                profiles.add (target);
+            }
+        }
+
         foreach (var action in actions_from_context (ctx, warnings, allow_network)) {
             var target = new LaunchTarget ();
             target.id = action.id;
@@ -126,6 +137,10 @@ namespace Lumoria.Runtime {
         var profile_name = launcher_profile_name_from_entry_id (wanted);
         if (profile_name != null && launcher != null) {
             return launch_target_from_profile (wanted, profile_name, launcher);
+        }
+        var boot_ini = boot_profile_name_from_entry_id (wanted);
+        if (boot_ini != null) {
+            return launch_target_from_boot_profile (wanted, boot_ini, launcher != null ? launcher.icon : "");
         }
         var matched = find_local_entrypoint (
             wanted, launcher, installer, entry.custom_entrypoints, entry

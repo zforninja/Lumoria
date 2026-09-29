@@ -38,3 +38,11 @@ install_subdir(
   install_dir: get_option('prefix') / get_option('datadir') / 'icons',
   strip_directory: false,
 )
+
+# Optional post-install scripts users can attach to an existing prefix
+# (Prefix > Packages > Scripts > Add), e.g. Ashita v4 next to Windower.
+install_subdir(
+  'manifests' / 'scripts',
+  install_dir: get_option('datadir') / 'lumoria' / 'scripts',
+  strip_directory: true,
+)
